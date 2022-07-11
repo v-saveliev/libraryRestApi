@@ -1,13 +1,14 @@
 INSERT INTO users VALUES
-(1, 'king1555', '5551'),
-(2, 'user886', 'qwerty'),
-(3, 'vp_reader', '1q2w3e');
+(1, '','default'),
+(2, '5551', 'king1555'),
+(3, 'qwerty', 'user886'),
+(4, '1q2w3e', 'vp_reader');
 
 INSERT INTO books VALUES
 (1, 940, 'Don Quixote', 2),
 (2, 216, 'The Great Gatsby', 2),
 (3, 1424, 'War and peace', 3),
-(4, 800, 'Crime and Punishment', 1),
+(4, 800, 'Crime and Punishment', 4),
 (5, 1000,'The Oydessey', 3),
 (6, 1500, 'Software Architecture in Practice', 3);
 

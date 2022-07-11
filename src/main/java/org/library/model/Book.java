@@ -1,15 +1,15 @@
 package org.library.model;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.*;
 
 import javax.persistence.*;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.util.List;
 
 @Entity
 @Table(name = "books")
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id")
 public class Book extends BaseEntity {
 
     @Column(name = "title")
@@ -18,17 +18,23 @@ public class Book extends BaseEntity {
     @Column(name = "pages")
     private Integer pages;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+//    @JsonIgnore
     @ManyToMany
     @JoinTable(
             name = "book_authors",
             joinColumns = @JoinColumn(name = "book_id"),
-            inverseJoinColumns = @JoinColumn(name = "author_id")
-    )
-    private Set<Author> bookAuthors;
+            inverseJoinColumns = @JoinColumn(name = "author_id"))
+    private List<Author> bookAuthors;
+
+    @JsonProperty("owner")
+    public String getUserView() {
+        return user.getUsername();
+    }
 
     public String getTitle() {
         return title;
@@ -54,11 +60,11 @@ public class Book extends BaseEntity {
         this.user = user;
     }
 
-    public Set<Author> getBookAuthors() {
+    public List<Author> getBookAuthors() {
         return bookAuthors;
     }
 
-    public void setBookAuthors(Set<Author> bookAuthors) {
+    public void setBookAuthors(List<Author> bookAuthors) {
         this.bookAuthors = bookAuthors;
     }
 
@@ -67,7 +73,7 @@ public class Book extends BaseEntity {
         return "Book{" +
                 "id='"+ getId() +
                 ", title='" + title + '\'' +
-                ", pages=" + pages + "\n"
-                + bookAuthors.toString() + "\n}";
+                ", pages=" + pages + ", authors: "
+                + bookAuthors.toString() + "}";
     }
 }

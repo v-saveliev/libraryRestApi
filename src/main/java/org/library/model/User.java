@@ -1,7 +1,6 @@
 package org.library.model;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -10,10 +9,14 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.util.List;
 import java.util.Set;
 
 @Entity
 @Table(name = "users")
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id")
 public class User extends BaseEntity {
 
     @Column(name = "username")
@@ -22,8 +25,17 @@ public class User extends BaseEntity {
     @Column(name = "password")
     private String password;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
-    private Set<Book> books;
+    private List<Book> books;
+
+    public List<Book> getBooks() {
+        return books;
+    }
+
+    public void setBooks(List<Book> books) {
+        this.books = books;
+    }
 
     public String getUsername() {
         return username;
@@ -41,7 +53,6 @@ public class User extends BaseEntity {
         return password;
     }
 
-    @JsonGetter
     public String jsonAnswer() {
         return "username='" + username;
     }

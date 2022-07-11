@@ -1,14 +1,20 @@
 package org.library.controllers;
 
+import org.library.model.Author;
 import org.library.model.Book;
+import org.library.model.User;
+import org.library.service.AuthorService;
 import org.library.service.BookService;
+import org.library.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -16,10 +22,14 @@ import java.util.List;
 public class BookRestController {
 
     private BookService bookService;
+    private AuthorService authorService;
+    private UserService userService;
 
     @Autowired
-    public BookRestController(BookService bookService) {
+    public BookRestController(BookService bookService, AuthorService authorService, UserService userService) {
         this.bookService = bookService;
+        this.authorService = authorService;
+        this.userService = userService;
     }
 
     @RequestMapping(value = "{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -42,6 +52,24 @@ public class BookRestController {
         if (book == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+
+        List<Author> authorsList = book.getBookAuthors();
+        Author currentAuthor;
+        Author foundedAuthor;
+        for (int i = authorsList.size() - 1; i >= 0 ; i--) {
+            currentAuthor = authorsList.get(i);
+            foundedAuthor = authorService.getByName(currentAuthor);
+
+            if (foundedAuthor != null) {
+                authorsList.set(i, foundedAuthor);
+            } else {
+                authorService.save(currentAuthor);
+                foundedAuthor = authorService.getByName(currentAuthor);
+                authorsList.set(i, foundedAuthor);
+            }
+        }
+
+        book.setUser(userService.getById((long) 1));
 
         this.bookService.save(book);
         return new ResponseEntity<>(book, HttpStatus.CREATED);

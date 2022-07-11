@@ -1,24 +1,34 @@
 package org.library.model;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.*;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "authors")
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id")
 public class Author extends BaseEntity{
 
     @Column(name = "name")
     private String name;
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "bookAuthors")
-    private Set<Book> authorBooks;
+    private List<Book> authorBooks;
+
+    public List<Book> getAuthorBooks() {
+        return authorBooks;
+    }
+
+    public void setAuthorBooks(List<Book> authorBooks) {
+        this.authorBooks = authorBooks;
+    }
 
     public String getName() {
         return name;
