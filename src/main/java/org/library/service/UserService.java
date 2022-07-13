@@ -1,8 +1,10 @@
 package org.library.service;
 
+import org.library.dto.UserDto;
 import org.library.model.User;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public interface UserService {
 
@@ -12,6 +14,14 @@ public interface UserService {
 
     void delete(User user);
 
-    List<User> getAll();
+    List<UserDto> getAll();
+
+    UserDto convertUserToDto(User user);
+
+    List<UserDto> convertListUserToDto(List<User> authors);
+
+    User convertUserDtoToUser(UserDto userDto);
+
+    List<User> convertUserDtoListToUserList(List<UserDto> userDtoList);
 
 }

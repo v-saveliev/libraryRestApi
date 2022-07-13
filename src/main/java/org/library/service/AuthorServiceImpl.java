@@ -1,16 +1,16 @@
 package org.library.service;
 
+import org.library.dto.AuthorDto;
 import org.library.model.Author;
 import org.library.repository.AuthorRepository;
-import org.library.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.support.ExampleMatcherAccessor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthorServiceImpl implements AuthorService{
@@ -48,8 +48,35 @@ public class AuthorServiceImpl implements AuthorService{
     }
 
     @Override
-    public List<Author> getAll() {
-        return authorRepository.findAll();
+    public List<AuthorDto> getAll() {
+        return convertListAuthorToDto(authorRepository.findAll());
     }
 
+    public AuthorDto convertAuthorToDto(Author author) {
+        AuthorDto authorDto = new AuthorDto();
+        authorDto.setName(author.getName());
+        return authorDto;
+    }
+
+
+    public List<AuthorDto> convertListAuthorToDto(List<Author> authors) {
+        return authors.stream()
+                .map(this::convertAuthorToDto)
+                .collect(Collectors.toList());
+    }
+
+    public Author convertAuthorDtoToAuthor(AuthorDto authorDto) {
+        Author author = new Author();
+        author.setId(authorDto.getId());
+        author.setName(authorDto.getName());
+
+        return author;
+    }
+
+    public List<Author> convertAuthorDtoListToAuthorList(List<AuthorDto> authorDtoList) {
+        return authorDtoList.stream()
+                .map(this::convertAuthorDtoToAuthor)
+                .collect(Collectors.toList());
+    }
 }
+

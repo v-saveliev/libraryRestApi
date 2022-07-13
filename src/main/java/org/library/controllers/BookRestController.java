@@ -1,5 +1,6 @@
 package org.library.controllers;
 
+import org.library.dto.BookDto;
 import org.library.model.Author;
 import org.library.model.Book;
 import org.library.model.User;
@@ -16,6 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/books/")
@@ -33,27 +35,30 @@ public class BookRestController {
     }
 
     @RequestMapping(value = "{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Book> getBook(@PathVariable("id") Long bookId) {
+    public ResponseEntity<BookDto> getBook(@PathVariable("id") Long bookId) {
         if(bookId == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        Book book = this.bookService.getById(bookId);
+        BookDto bookDto = bookService.convertBookToDto(bookService.getById(bookId));
 
-        if(book == null) {
+        if(bookDto == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(book, HttpStatus.OK);
+        return new ResponseEntity<>(bookDto, HttpStatus.OK);
     }
 
     @RequestMapping(value = "", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Book> saveBook(@RequestBody Book book) {
-        if (book == null) {
+    public ResponseEntity<Book> saveBook(@RequestBody BookDto bookDto) {
+        if (bookDto == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
+        Book book = bookService.convertBookDtoToBook(bookDto);
+
         List<Author> authorsList = book.getBookAuthors();
+
         Author currentAuthor;
         Author foundedAuthor;
         for (int i = authorsList.size() - 1; i >= 0 ; i--) {
@@ -100,8 +105,8 @@ public class BookRestController {
     }
 
     @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Book>> getAllBooks() {
-        List<Book> books = this.bookService.getAll();
+    public ResponseEntity<List<BookDto>> getAllBooks() {
+        List<BookDto> books = bookService.getAll();
 
         if (books.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

@@ -1,5 +1,6 @@
 package org.library.service;
 
+import org.library.dto.BookDto;
 import org.library.model.Book;
 
 import java.util.List;
@@ -12,5 +13,9 @@ public interface BookService {
 
     void delete(Book book);
 
-    List<Book> getAll();
+    List<BookDto> getAll();
+
+    BookDto convertBookToDto(Book book);
+
+    Book convertBookDtoToBook(BookDto bookDto);
 }
