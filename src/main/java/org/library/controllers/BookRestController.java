@@ -15,8 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
@@ -50,34 +50,43 @@ public class BookRestController {
     }
 
     @RequestMapping(value = "", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Book> saveBook(@RequestBody BookDto bookDto) {
+    public ResponseEntity<BookDto> saveBook(@RequestBody BookDto bookDto) {
         if (bookDto == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
         Book book = bookService.convertBookDtoToBook(bookDto);
 
-        List<Author> authorsList = book.getBookAuthors();
+        Map<String, Author> authorsMap = authorService.getAll().stream()
+                .collect(Collectors.toMap(Author::getName, Function.identity(), (a1, a2) -> a1));
+        Set<String> authorsNames = authorsMap.keySet();
+        List<Author> bookAuthors = book.getBookAuthors();
+        List<Author> authorsToSave = new ArrayList<>();
 
         Author currentAuthor;
-        Author foundedAuthor;
-        for (int i = authorsList.size() - 1; i >= 0 ; i--) {
-            currentAuthor = authorsList.get(i);
-            foundedAuthor = authorService.getByName(currentAuthor);
+        String currentAuthorName;
+        for (int i = bookAuthors.size() - 1; i >= 0 ; i--) {
+            currentAuthor = bookAuthors.get(i);
+            currentAuthorName = currentAuthor.getName();
 
-            if (foundedAuthor != null) {
-                authorsList.set(i, foundedAuthor);
+            if (authorsNames.contains(currentAuthorName)) {
+                bookAuthors.set(i, authorsMap.get(currentAuthorName));
             } else {
-                authorService.save(currentAuthor);
-                foundedAuthor = authorService.getByName(currentAuthor);
-                authorsList.set(i, foundedAuthor);
+                authorsToSave.add(currentAuthor);
+                bookAuthors.remove(i);
             }
         }
+
+        authorService.saveAll(authorsToSave);
+        List<Author> savedAuthors = authorService.getAllByExample(authorsToSave.stream()
+                .map(Author::getName)
+                .collect(Collectors.toList()));
+        bookAuthors.addAll(savedAuthors);
 
         book.setUser(userService.getById((long) 1));
 
         this.bookService.save(book);
-        return new ResponseEntity<>(book, HttpStatus.CREATED);
+        return new ResponseEntity<>(bookService.convertBookToDto(book), HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)

@@ -2,10 +2,13 @@ package org.library.service;
 
 import org.library.dto.AuthorDto;
 import org.library.model.Author;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public interface AuthorService {
 
@@ -15,9 +18,11 @@ public interface AuthorService {
 
     void save(Author author);
 
+    void saveAll(List<Author> authors);
+
     void delete(Author author);
 
-    List<AuthorDto> getAll();
+    List<Author> getAll();
 
     AuthorDto convertAuthorToDto(Author author);
 
@@ -26,4 +31,7 @@ public interface AuthorService {
     Author convertAuthorDtoToAuthor(AuthorDto authorDto);
 
     List<Author> convertAuthorDtoListToAuthorList(List<AuthorDto> authorDtoList);
+
+    List<Author> getAllByExample(Collection<String> authorsNames);
+
 }

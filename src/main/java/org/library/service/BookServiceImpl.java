@@ -3,8 +3,10 @@ package org.library.service;
 import lombok.extern.slf4j.Slf4j;
 import org.library.dto.AuthorDto;
 import org.library.dto.BookDto;
+import org.library.dto.UserDto;
 import org.library.model.Author;
 import org.library.model.Book;
+import org.library.model.User;
 import org.library.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -71,7 +73,9 @@ public class BookServiceImpl implements BookService {
         book.setId(bookDto.getId());
         book.setTitle(bookDto.getTitle());
         book.setPages(bookDto.getPages());
-        book.setUser(userService.convertUserDtoToUser(bookDto.getUser()));
+
+        UserDto userDto = bookDto.getUser();
+        if (userDto != null) book.setUser(userService.convertUserDtoToUser(userDto));
         book.setBookAuthors(authorService.convertAuthorDtoListToAuthorList(bookDto.getBookAuthors()));
 
         return book;

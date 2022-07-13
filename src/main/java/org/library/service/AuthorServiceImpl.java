@@ -6,8 +6,12 @@ import org.library.repository.AuthorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,14 +46,29 @@ public class AuthorServiceImpl implements AuthorService{
         authorRepository.save(author);
     }
 
+
+    @Override
+    public void saveAll(List<Author> authors) {
+        authorRepository.saveAll(authors);
+    }
+
     @Override
     public void delete(Author author) {
         authorRepository.delete(author);
     }
 
     @Override
-    public List<AuthorDto> getAll() {
-        return convertListAuthorToDto(authorRepository.findAll());
+    public List<Author> getAll() {
+        return authorRepository.findAll();
+    }
+
+    @Override
+    public List<Author> getAllByExample(Collection<String> authorsNames)
+    {
+//        Example<List<Author>> example = Example.of(authors, ExampleMatcher.matchingAny());
+//        authorRepository.findAll()
+
+        return authorRepository.getAllByExample(authorsNames);
     }
 
     public AuthorDto convertAuthorToDto(Author author) {
