@@ -16,12 +16,4 @@ public interface UserService {
 
     List<UserDto> getAll();
 
-    UserDto convertUserToDto(User user);
-
-    List<UserDto> convertListUserToDto(List<User> authors);
-
-    User convertUserDtoToUser(UserDto userDto);
-
-    List<User> convertUserDtoListToUserList(List<UserDto> userDtoList);
-
 }

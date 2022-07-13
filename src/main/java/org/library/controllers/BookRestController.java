@@ -6,6 +6,7 @@ import org.library.model.Book;
 import org.library.model.User;
 import org.library.service.AuthorService;
 import org.library.service.BookService;
+import org.library.service.BookServiceImpl;
 import org.library.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +41,7 @@ public class BookRestController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        BookDto bookDto = bookService.convertBookToDto(bookService.getById(bookId));
+        BookDto bookDto = BookServiceImpl.convertBookToDto(bookService.getById(bookId));
 
         if(bookDto == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -55,7 +56,7 @@ public class BookRestController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        Book book = bookService.convertBookDtoToBook(bookDto);
+        Book book = BookServiceImpl.convertBookDtoToBook(bookDto);
 
         Map<String, Author> authorsMap = authorService.getAll().stream()
                 .collect(Collectors.toMap(Author::getName, Function.identity(), (a1, a2) -> a1));
@@ -72,13 +73,14 @@ public class BookRestController {
             if (authorsNames.contains(currentAuthorName)) {
                 bookAuthors.set(i, authorsMap.get(currentAuthorName));
             } else {
+                currentAuthor.addBookToList(book);
                 authorsToSave.add(currentAuthor);
                 bookAuthors.remove(i);
             }
         }
 
         authorService.saveAll(authorsToSave);
-        List<Author> savedAuthors = authorService.getAllByExample(authorsToSave.stream()
+        List<Author> savedAuthors = authorService.getAllByNames(authorsToSave.stream()
                 .map(Author::getName)
                 .collect(Collectors.toList()));
         bookAuthors.addAll(savedAuthors);
@@ -86,7 +88,7 @@ public class BookRestController {
         book.setUser(userService.getById((long) 1));
 
         this.bookService.save(book);
-        return new ResponseEntity<>(bookService.convertBookToDto(book), HttpStatus.CREATED);
+        return new ResponseEntity<>(BookServiceImpl.convertBookToDto(book), HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)

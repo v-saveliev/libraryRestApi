@@ -24,14 +24,6 @@ public interface AuthorService {
 
     List<Author> getAll();
 
-    AuthorDto convertAuthorToDto(Author author);
-
-    List<AuthorDto> convertListAuthorToDto(List<Author> authors);
-
-    Author convertAuthorDtoToAuthor(AuthorDto authorDto);
-
-    List<Author> convertAuthorDtoListToAuthorList(List<AuthorDto> authorDtoList);
-
-    List<Author> getAllByExample(Collection<String> authorsNames);
+    List<Author> getAllByNames(Collection<String> authorsNames);
 
 }

@@ -4,6 +4,7 @@ import org.library.dto.BookDto;
 import org.library.model.Book;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public interface BookService {
 
@@ -15,7 +16,4 @@ public interface BookService {
 
     List<BookDto> getAll();
 
-    BookDto convertBookToDto(Book book);
-
-    Book convertBookDtoToBook(BookDto bookDto);
 }

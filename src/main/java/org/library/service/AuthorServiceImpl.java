@@ -1,8 +1,11 @@
 package org.library.service;
 
 import org.library.dto.AuthorDto;
+import org.library.dto.BookDto;
 import org.library.model.Author;
+import org.library.model.Book;
 import org.library.repository.AuthorRepository;
+import org.library.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -23,7 +26,7 @@ public class AuthorServiceImpl implements AuthorService{
     AuthorRepository authorRepository;
 
     @Autowired
-    public AuthorServiceImpl(AuthorRepository authorRepository){
+    public AuthorServiceImpl(AuthorRepository authorRepository, BookService bookService){
         this.authorRepository = authorRepository;
     };
 
@@ -63,38 +66,37 @@ public class AuthorServiceImpl implements AuthorService{
     }
 
     @Override
-    public List<Author> getAllByExample(Collection<String> authorsNames)
+    public List<Author> getAllByNames(Collection<String> authorsNames)
     {
-//        Example<List<Author>> example = Example.of(authors, ExampleMatcher.matchingAny());
-//        authorRepository.findAll()
-
-        return authorRepository.getAllByExample(authorsNames);
+        return authorRepository.getAllByNames(authorsNames);
     }
 
-    public AuthorDto convertAuthorToDto(Author author) {
+    public static AuthorDto convertAuthorToDto(Author author) {
         AuthorDto authorDto = new AuthorDto();
         authorDto.setName(author.getName());
+        authorDto.setAuthorBooks(author.getAuthorBooks());
         return authorDto;
     }
 
 
-    public List<AuthorDto> convertListAuthorToDto(List<Author> authors) {
+    public static List<AuthorDto> convertListAuthorToDto(List<Author> authors) {
         return authors.stream()
-                .map(this::convertAuthorToDto)
+                .map(AuthorServiceImpl::convertAuthorToDto)
                 .collect(Collectors.toList());
     }
 
-    public Author convertAuthorDtoToAuthor(AuthorDto authorDto) {
+    public static Author convertAuthorDtoToAuthor(AuthorDto authorDto) {
         Author author = new Author();
         author.setId(authorDto.getId());
         author.setName(authorDto.getName());
+        author.setAuthorBooks(authorDto.getAuthorBooks());
 
         return author;
     }
 
-    public List<Author> convertAuthorDtoListToAuthorList(List<AuthorDto> authorDtoList) {
+    public static List<Author> convertAuthorDtoListToAuthorList(List<AuthorDto> authorDtoList) {
         return authorDtoList.stream()
-                .map(this::convertAuthorDtoToAuthor)
+                .map(AuthorServiceImpl::convertAuthorDtoToAuthor)
                 .collect(Collectors.toList());
     }
 }

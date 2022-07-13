@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,5 +26,10 @@ public class Author extends BaseEntity{
     @Override
     public String toString() {
         return "Author name='" + name;
+    }
+
+    public void addBookToList(Book book) {
+        if (authorBooks == null) authorBooks = new ArrayList<>();
+        authorBooks.add(book);
     }
 }

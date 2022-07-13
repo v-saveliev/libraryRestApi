@@ -45,28 +45,28 @@ public class UserServiceImpl implements UserService{
         return convertListUserToDto(userRepository.findAll());
     }
 
-    public UserDto convertUserToDto(User user) {
+    public static UserDto convertUserToDto(User user) {
         UserDto userDto = new UserDto();
         userDto.setUsername(user.getUsername());
         return userDto;
     }
 
 
-    public List<UserDto> convertListUserToDto(List<User> users) {
+    public static List<UserDto> convertListUserToDto(List<User> users) {
         return users.stream()
-                .map(this::convertUserToDto)
+                .map(UserServiceImpl::convertUserToDto)
                 .collect(Collectors.toList());
     }
 
-    public User convertUserDtoToUser(UserDto userDto) {
+    public static User convertUserDtoToUser(UserDto userDto) {
         User user = new User();
         user.setUsername(userDto.getUsername());
         return user;
     }
 
-    public List<User> convertUserDtoListToUserList(List<UserDto> userDtoList) {
+    public static List<User> convertUserDtoListToUserList(List<UserDto> userDtoList) {
         return userDtoList.stream()
-                .map(this::convertUserDtoToUser)
+                .map(UserServiceImpl::convertUserDtoToUser)
                 .collect(Collectors.toList());
     }
 }

@@ -19,14 +19,10 @@ import java.util.stream.Collectors;
 public class BookServiceImpl implements BookService {
 
     BookRepository bookRepository;
-    AuthorService authorService;
-    UserService userService;
 
     @Autowired
-    public BookServiceImpl(BookRepository bookRepository, AuthorService authorService, UserService userService){
+    public BookServiceImpl(BookRepository bookRepository){
         this.bookRepository = bookRepository;
-        this.authorService = authorService;
-        this.userService = userService;
     };
 
     @Override
@@ -51,23 +47,23 @@ public class BookServiceImpl implements BookService {
     public List<BookDto> getAll() {
         log.info("BookService getAll");
         return bookRepository.findAll().stream()
-                .map(this::convertBookToDto)
+                .map(BookServiceImpl::convertBookToDto)
                 .collect(Collectors.toList());
     }
 
-    public BookDto convertBookToDto(Book book) {
+    public static BookDto convertBookToDto(Book book) {
         BookDto bookDto = new BookDto();
 
         bookDto.setId(book.getId());
         bookDto.setTitle(book.getTitle());
         bookDto.setPages(book.getPages());
         bookDto.setOwner(book.getUser().getUsername());
-        bookDto.setBookAuthors(authorService.convertListAuthorToDto(book.getBookAuthors()));
+        bookDto.setBookAuthors(AuthorServiceImpl.convertListAuthorToDto(book.getBookAuthors()));
 
         return bookDto;
     }
 
-    public Book convertBookDtoToBook(BookDto bookDto) {
+    public static Book convertBookDtoToBook(BookDto bookDto) {
         Book book = new Book();
 
         book.setId(bookDto.getId());
@@ -75,10 +71,24 @@ public class BookServiceImpl implements BookService {
         book.setPages(bookDto.getPages());
 
         UserDto userDto = bookDto.getUser();
-        if (userDto != null) book.setUser(userService.convertUserDtoToUser(userDto));
-        book.setBookAuthors(authorService.convertAuthorDtoListToAuthorList(bookDto.getBookAuthors()));
+        if (userDto != null) book.setUser(UserServiceImpl.convertUserDtoToUser(userDto));
+        List<AuthorDto> authorDtoList = bookDto.getBookAuthors();
+        if (authorDtoList != null)
+        book.setBookAuthors(AuthorServiceImpl.convertAuthorDtoListToAuthorList(authorDtoList));
 
         return book;
+    }
+
+    public static List<Book> convertBookDtoListToEntity(List<BookDto> bookDtoList) {
+        return bookDtoList.stream()
+                .map(BookServiceImpl::convertBookDtoToBook)
+                .collect(Collectors.toList());
+    }
+
+    public static List<BookDto> convertBookListToDto(List<Book> bookList) {
+        return bookList.stream()
+                .map(BookServiceImpl::convertBookToDto)
+                .collect(Collectors.toList());
     }
 
 }

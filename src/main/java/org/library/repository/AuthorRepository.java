@@ -10,5 +10,5 @@ import java.util.List;
 
 public interface AuthorRepository extends JpaRepository<Author, Long> {
     @Query("select authors from Author authors where authors.name in :names")
-    List<Author> getAllByExample(@Param("names") Collection<String> authorsNames);
+    List<Author> getAllByNames(@Param("names") Collection<String> authorsNames);
 }
