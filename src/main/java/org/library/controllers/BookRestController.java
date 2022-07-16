@@ -1,6 +1,7 @@
 package org.library.controllers;
 
 import org.library.dto.BookDto;
+import org.library.dto.Converter;
 import org.library.model.Author;
 import org.library.model.Book;
 import org.library.model.User;
@@ -41,7 +42,7 @@ public class BookRestController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        BookDto bookDto = BookServiceImpl.convertBookToDto(bookService.getById(bookId));
+        BookDto bookDto = Converter.convertBookToDto(bookService.getById(bookId));
 
         if(bookDto == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -56,7 +57,7 @@ public class BookRestController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        Book book = BookServiceImpl.convertBookDtoToBook(bookDto);
+        Book book = Converter.convertBookDtoToEntity(bookDto);
 
         Map<String, Author> authorsMap = authorService.getAll().stream()
                 .collect(Collectors.toMap(Author::getName, Function.identity(), (a1, a2) -> a1));
@@ -88,7 +89,7 @@ public class BookRestController {
         book.setUser(userService.getById((long) 1));
 
         this.bookService.save(book);
-        return new ResponseEntity<>(BookServiceImpl.convertBookToDto(book), HttpStatus.CREATED);
+        return new ResponseEntity<>(Converter.convertBookToDto(book), HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
