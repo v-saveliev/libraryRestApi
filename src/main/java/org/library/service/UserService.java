@@ -8,12 +8,14 @@ import java.util.stream.Collectors;
 
 public interface UserService {
 
+    User register(User user);
+
     User getById(Long id);
 
-    void save(User user);
+    User findByUsername(String username);
 
     void delete(User user);
 
-    List<UserDto> getAll();
+    List<User> getAll();
 
 }

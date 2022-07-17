@@ -6,6 +6,8 @@ import org.library.dto.UserDto;
 import org.library.model.User;
 import org.library.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,11 +17,22 @@ import java.util.List;
 public class UserServiceImpl implements UserService{
 
     UserRepository userRepository;
+    BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository){
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder){
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     };
+
+
+    @Override
+    public User register(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User registeredUser = userRepository.save(user);
+
+        return  registeredUser;
+    }
 
     @Override
     public User getById(Long id) {
@@ -27,18 +40,18 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public void save(User user) {
-
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
-    @Override
+     @Override
     public void delete(User user) {
 
     }
 
     @Override
-    public List<UserDto> getAll() {
-        return Converter.convertListUserToDto(userRepository.findAll());
+    public List<User> getAll() {
+        return userRepository.findAll();
     }
 
 

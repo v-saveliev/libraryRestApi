@@ -10,7 +10,6 @@ import org.library.service.BookService;
 import org.library.service.BookServiceImpl;
 import org.library.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
