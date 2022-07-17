@@ -1,21 +1,24 @@
 package org.library.controllers;
 
+import org.library.dto.BookDto;
+import org.library.dto.Converter;
 import org.library.model.Author;
 import org.library.model.Book;
 import org.library.model.User;
 import org.library.service.AuthorService;
 import org.library.service.BookService;
+import org.library.service.BookServiceImpl;
 import org.library.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/books/")
@@ -33,46 +36,59 @@ public class BookRestController {
     }
 
     @RequestMapping(value = "{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Book> getBook(@PathVariable("id") Long bookId) {
+    public ResponseEntity<BookDto> getBook(@PathVariable("id") Long bookId) {
         if(bookId == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        Book book = this.bookService.getById(bookId);
+        BookDto bookDto = Converter.convertBookToDto(bookService.getById(bookId));
 
-        if(book == null) {
+        if(bookDto == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(book, HttpStatus.OK);
+        return new ResponseEntity<>(bookDto, HttpStatus.OK);
     }
 
     @RequestMapping(value = "", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Book> saveBook(@RequestBody Book book) {
-        if (book == null) {
+    public ResponseEntity<BookDto> saveBook(@RequestBody BookDto bookDto) {
+        if (bookDto == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        List<Author> authorsList = book.getBookAuthors();
-        Author currentAuthor;
-        Author foundedAuthor;
-        for (int i = authorsList.size() - 1; i >= 0 ; i--) {
-            currentAuthor = authorsList.get(i);
-            foundedAuthor = authorService.getByName(currentAuthor);
+        Book book = Converter.convertBookDtoToEntity(bookDto);
 
-            if (foundedAuthor != null) {
-                authorsList.set(i, foundedAuthor);
+        Map<String, Author> authorsMap = authorService.getAll().stream()
+                .collect(Collectors.toMap(Author::getName, Function.identity(), (a1, a2) -> a1));
+        Set<String> authorsNames = authorsMap.keySet();
+        List<Author> bookAuthors = book.getBookAuthors();
+        List<Author> authorsToSave = new ArrayList<>();
+
+        Author currentAuthor;
+        String currentAuthorName;
+        for (int i = bookAuthors.size() - 1; i >= 0 ; i--) {
+            currentAuthor = bookAuthors.get(i);
+            currentAuthorName = currentAuthor.getName();
+
+            if (authorsNames.contains(currentAuthorName)) {
+                bookAuthors.set(i, authorsMap.get(currentAuthorName));
             } else {
-                authorService.save(currentAuthor);
-                foundedAuthor = authorService.getByName(currentAuthor);
-                authorsList.set(i, foundedAuthor);
+                currentAuthor.addBookToList(book);
+                authorsToSave.add(currentAuthor);
+                bookAuthors.remove(i);
             }
         }
+
+        authorService.saveAll(authorsToSave);
+        List<Author> savedAuthors = authorService.getAllByNames(authorsToSave.stream()
+                .map(Author::getName)
+                .collect(Collectors.toList()));
+        bookAuthors.addAll(savedAuthors);
 
         book.setUser(userService.getById((long) 1));
 
         this.bookService.save(book);
-        return new ResponseEntity<>(book, HttpStatus.CREATED);
+        return new ResponseEntity<>(Converter.convertBookToDto(book), HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -100,8 +116,8 @@ public class BookRestController {
     }
 
     @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Book>> getAllBooks() {
-        List<Book> books = this.bookService.getAll();
+    public ResponseEntity<List<BookDto>> getAllBooks() {
+        List<BookDto> books = bookService.getAll();
 
         if (books.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

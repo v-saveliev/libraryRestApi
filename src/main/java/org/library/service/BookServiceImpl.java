@@ -1,12 +1,15 @@
 package org.library.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.library.dto.BookDto;
+import org.library.dto.Converter;
 import org.library.model.Book;
 import org.library.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -21,25 +24,28 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book getById(Long id) {
-//        log.info("BookService getById {}", id);
+        log.info("BookService getById {}", id);
         return bookRepository.findById(id).orElse(null);
     }
 
     @Override
     public void save(Book book) {
-//        log.info("BookService save {}", book);
+        log.info("BookService save {}", book);
         bookRepository.save(book);
     }
 
     @Override
     public void delete(Book book) {
-//        log.info("BookService delete {}", book);
+        log.info("BookService delete {}", book);
         bookRepository.delete(book);
     }
 
     @Override
-    public List<Book> getAll() {
-//        log.info("BookService getAll");
-        return bookRepository.findAll();
+    public List<BookDto> getAll() {
+        log.info("BookService getAll");
+        return bookRepository.findAll().stream()
+                .map(Converter::convertBookToDto)
+                .collect(Collectors.toList());
     }
+
 }
