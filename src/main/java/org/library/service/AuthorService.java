@@ -14,7 +14,7 @@ public interface AuthorService {
 
     Author getById(Long id);
 
-    Author getByName(Author author);
+    Author getByName(String authorName);
 
     void save(Author author);
 

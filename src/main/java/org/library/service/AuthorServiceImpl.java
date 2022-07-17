@@ -27,7 +27,9 @@ public class AuthorServiceImpl implements AuthorService{
     }
 
     @Override
-    public Author getByName(Author author) {
+    public Author getByName(String authorName) {
+        Author author = new Author();
+        author.setName(authorName);
         ExampleMatcher customExampleMatcher = ExampleMatcher.matchingAny()
                 .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
         Example<Author> example = Example.of(author, customExampleMatcher);
