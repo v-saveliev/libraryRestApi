@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS books(
 
 CREATE TABLE IF NOT EXISTS authors(
     id SERIAL PRIMARY KEY,
-    name varchar(255) NOT NULL
+    name varchar(255) NOT NULL,
+    info jsonb
 );
 
 CREATE TABLE IF NOT EXISTS book_authors(

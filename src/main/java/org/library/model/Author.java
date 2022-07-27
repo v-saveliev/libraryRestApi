@@ -1,8 +1,11 @@
 package org.library.model;
 
 import com.fasterxml.jackson.annotation.*;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,10 +18,15 @@ import java.util.List;
 @Table(name = "authors")
 @Getter
 @Setter
+@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 public class Author extends BaseEntity{
 
     @Column(name = "name")
     private String name;
+
+    @Type(type = "jsonb")
+    @Column(name = "info")
+    private String info;
 
     @ManyToMany(mappedBy = "bookAuthors")
     private List<Book> authorBooks;
