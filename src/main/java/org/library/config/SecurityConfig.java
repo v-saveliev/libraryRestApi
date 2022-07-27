@@ -17,7 +17,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    private static final String LOGIN_ENDPOINT = "/api/v1/auth/**";
+    private static final String[] AUTH_WHITELIST = {
+
+            // -- login
+            "/api/v1/auth/**",
+            // -- swagger ui
+            "/test/swagger-ui.html",
+            "/swagger-ui/index.html",
+            "/test/swagger-ui/index.html",
+            "/swagger-resources/**",
+            "/swagger-ui.html",
+            "/v3/api-docs",
+            "/webjars/**"
+    };
+//    private static final String LOGIN_ENDPOINT = "/api/v1/auth/**";
 
     @Autowired
     public SecurityConfig(JwtTokenProvider jwtTokenProvider) {
@@ -45,7 +58,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers(LOGIN_ENDPOINT).permitAll()
+                .antMatchers(AUTH_WHITELIST).permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .apply(new JwtConfigurer(jwtTokenProvider));
