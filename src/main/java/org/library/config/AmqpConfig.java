@@ -41,16 +41,16 @@ public class AmqpConfig {
     public Queue authorsQueue() {
         return new Queue("authors");
     }
-
-    @Bean
-    public SimpleMessageListenerContainer listenerContainer(AmqpListener amqpListener) {
-        SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer();
-        listenerContainer.setConnectionFactory(connectionFactory());
-        listenerContainer.setQueueNames("authors");
-        listenerContainer.setMessageListener(amqpListener);
-        listenerContainer.setAcknowledgeMode(AcknowledgeMode.AUTO);
-        listenerContainer.setConcurrency("4");
-        listenerContainer.setPrefetchCount(20);
-        return listenerContainer;
-    }
+//
+//    @Bean
+//    public SimpleMessageListenerContainer listenerContainer(AmqpListener amqpListener) {
+//        SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer();
+//        listenerContainer.setConnectionFactory(connectionFactory());
+//        listenerContainer.setQueueNames("authors");
+//        listenerContainer.setMessageListener(amqpListener);
+//        listenerContainer.setAcknowledgeMode(AcknowledgeMode.AUTO);
+//        listenerContainer.setConcurrency("4");
+//        listenerContainer.setPrefetchCount(20);
+//        return listenerContainer;
+//    }
 }

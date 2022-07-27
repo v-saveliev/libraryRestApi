@@ -1,5 +1,7 @@
 package org.library.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 
 import java.util.List;
@@ -8,6 +10,6 @@ import java.util.List;
 public class AuthorDto {
     private Long id;
     private String name;
-    private String info;
+    private JsonNode info;
     private List<BookPartDto> authorBooks;
 }
