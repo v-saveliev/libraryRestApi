@@ -1,15 +1,14 @@
 package org.library.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.library.dto.BookDto;
-import org.library.dto.Converter;
 import org.library.model.Book;
 import org.library.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,11 +40,11 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<BookDto> getAll() {
+    public List<Book> getAll(int page, int size) {
         log.info("BookService getAll");
-        return bookRepository.findAll().stream()
-                .map(Converter::convertBookToDto)
-                .collect(Collectors.toList());
+
+        Pageable pageable = PageRequest.of(page, size);
+        return bookRepository.findAll(pageable).getContent();
     }
 
 }

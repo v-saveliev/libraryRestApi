@@ -14,6 +14,6 @@ public interface BookService {
 
     void delete(Book book);
 
-    List<BookDto> getAll();
+    List<Book> getAll(int page, int size);
 
 }
