@@ -12,9 +12,7 @@ public class BookDto {
        private Long id;
        private String title;
        private Integer pages;
-       @JsonIgnore
-       private UserDto user;
-       private String owner;
-       private List<AuthorDto> bookAuthors;
+       private UserPartDto user;
+       private List<AuthorPartDto> bookAuthors;
 
 }

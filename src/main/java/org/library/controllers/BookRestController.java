@@ -1,13 +1,11 @@
 package org.library.controllers;
 
 import org.library.dto.BookDto;
-import org.library.dto.Converter;
+import org.library.dto.BookMapperDto;
 import org.library.model.Author;
 import org.library.model.Book;
-import org.library.model.User;
 import org.library.service.AuthorService;
 import org.library.service.BookService;
-import org.library.service.BookServiceImpl;
 import org.library.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,12 +25,15 @@ public class BookRestController {
     private BookService bookService;
     private AuthorService authorService;
     private UserService userService;
+    private BookMapperDto bookMapper;
 
     @Autowired
-    public BookRestController(BookService bookService, AuthorService authorService, UserService userService) {
+    public BookRestController(BookService bookService, AuthorService authorService, UserService userService,
+                              BookMapperDto bookMapper) {
         this.bookService = bookService;
         this.authorService = authorService;
         this.userService = userService;
+        this.bookMapper = bookMapper;
     }
 
     @RequestMapping(value = "{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -41,7 +42,7 @@ public class BookRestController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        BookDto bookDto = Converter.convertBookToDto(bookService.getById(bookId));
+        BookDto bookDto = bookMapper.convertBookToDto(bookService.getById(bookId));
 
         if(bookDto == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -56,7 +57,12 @@ public class BookRestController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        Book book = Converter.convertBookDtoToEntity(bookDto);
+        if (bookDto.getBookAuthors().size() > 20) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+
+        Book book = bookMapper.convertBookDtoToEntity(bookDto);
 
         Map<String, Author> authorsMap = authorService.getAll().stream()
                 .collect(Collectors.toMap(Author::getName, Function.identity(), (a1, a2) -> a1));
@@ -80,7 +86,8 @@ public class BookRestController {
         }
 
         authorService.saveAll(authorsToSave);
-        List<Author> savedAuthors = authorService.getAllByNames(authorsToSave.stream()
+        int limit = 20;
+        List<Author> savedAuthors = authorService.getAllByNames(limit, authorsToSave.stream()
                 .map(Author::getName)
                 .collect(Collectors.toList()));
         bookAuthors.addAll(savedAuthors);
@@ -88,7 +95,7 @@ public class BookRestController {
         book.setUser(userService.getById((long) 1));
 
         this.bookService.save(book);
-        return new ResponseEntity<>(Converter.convertBookToDto(book), HttpStatus.CREATED);
+        return new ResponseEntity<>(bookMapper.convertBookToDto(book), HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -116,14 +123,14 @@ public class BookRestController {
     }
 
     @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<BookDto>> getAllBooks() {
-        List<BookDto> books = bookService.getAll();
+    public ResponseEntity<List<BookDto>> getAllBooks(@RequestParam int page, @RequestParam int size) {
+        List<BookDto> booksDto = bookMapper.convertBookListToDto(bookService.getAll(page, size));
 
-        if (books.isEmpty()) {
+        if (booksDto.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(books, HttpStatus.OK);
+        return new ResponseEntity<>(booksDto, HttpStatus.OK);
     }
 
 
