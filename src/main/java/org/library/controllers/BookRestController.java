@@ -11,9 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.validation.Valid;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -51,8 +55,9 @@ public class BookRestController {
         return new ResponseEntity<>(bookDto, HttpStatus.OK);
     }
 
+    @Transactional
     @RequestMapping(value = "", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BookDto> saveBook(@RequestBody BookDto bookDto) {
+    public ResponseEntity<BookDto> saveBook(@Valid @RequestBody BookDto bookDto) {
         if (bookDto == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -133,5 +138,16 @@ public class BookRestController {
         return new ResponseEntity<>(booksDto, HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return errors;
+    }
 
 }
