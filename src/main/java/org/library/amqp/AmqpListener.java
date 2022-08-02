@@ -6,6 +6,7 @@ import com.rabbitmq.client.Channel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.library.dto.AuthorDto;
+import org.library.dto.AuthorMapperDto;
 import org.library.model.Author;
 import org.library.service.AuthorService;
 import org.springframework.amqp.core.Message;
@@ -25,21 +26,19 @@ import java.io.IOException;
 public class AmqpListener  {
 
     private final AuthorService authorService;
+    private final AuthorMapperDto authorMapper;
 
     @RabbitListener(queues = "authors")
     public void onMessage(AuthorDto authorDto, Channel channel,
                           @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws Exception {
 
           String name = authorDto.getName();
-          String info = authorDto.getInfo().toString();
-          Author author = authorService.getByName(name);
 
+          Author author = authorService.getByName(name);
           if (author == null) {
               log.info("author with name \"" + name + "\" not found");
               try {
-                  author = new Author();
-                  author.setName(name);
-                  author.setInfo(info);
+                  author = authorMapper.convertAuthorDtoToEntity(authorDto);
                   authorService.save(author);
                   log.info("author is recorded in the database");
 
