@@ -18,21 +18,21 @@ public class AuthorMapperDto {
         this.modelMapper = modelMapper;
     }
 
-    public AuthorPartDto convertAuthorToDto(Author author) {
-        return modelMapper.map(author, AuthorPartDto.class);
+    public AuthorDto convertAuthorToDto(Author author) {
+        return modelMapper.map(author, AuthorDto.class);
     }
 
-    public List<AuthorPartDto> convertListAuthorToDto(List<Author> authors) {
+    public List<AuthorDto> convertListAuthorToDto(List<Author> authors) {
         return authors.stream()
                 .map(this::convertAuthorToDto)
                 .collect(Collectors.toList());
     }
 
-    public Author convertAuthorDtoToEntity(AuthorPartDto authorDto) {
+    public Author convertAuthorDtoToEntity(AuthorDto authorDto) {
         return modelMapper.map(authorDto, Author.class);
     }
 
-    public List<Author> convertAuthorDtoListToEntity(List<AuthorPartDto> authorDtoList) {
+    public List<Author> convertAuthorDtoListToEntity(List<AuthorDto> authorDtoList) {
         return authorDtoList.stream()
                 .map(this::convertAuthorDtoToEntity)
                 .collect(Collectors.toList());
