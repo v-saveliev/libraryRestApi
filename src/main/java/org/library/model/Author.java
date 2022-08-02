@@ -1,6 +1,7 @@
 package org.library.model;
 
 import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,7 +27,7 @@ public class Author extends BaseEntity{
 
     @Type(type = "jsonb")
     @Column(name = "info")
-    private String info;
+    private JsonNode info;
 
     @ManyToMany(mappedBy = "bookAuthors")
     private List<Book> authorBooks;
