@@ -22,13 +22,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             // -- login
             "/api/v1/auth/**",
             // -- swagger ui
-            "/test/swagger-ui.html",
-            "/swagger-ui/index.html",
-            "/test/swagger-ui/index.html",
+            "/v2/api-docs",
+            "/configuration/ui",
+            "/swagger-resources",
             "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
             "/swagger-ui.html",
-            "/v3/api-docs",
-            "/webjars/**"
+            "/webjars/**",
+            "/swagger-ui/**"
     };
 //    private static final String LOGIN_ENDPOINT = "/api/v1/auth/**";
 
