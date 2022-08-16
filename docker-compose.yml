@@ -1,0 +1,64 @@
+version: '3'
+
+services:
+
+   database:
+    
+    image: 'postgres:latest'
+    ports:
+        - 5433:5432    
+    env_file:
+        - settings.env  
+    volumes:
+        - ./db-data/:/var/lib/postgresql/
+        
+   rabbitmq:
+      image: 'rabbitmq:3.10-management-alpine'
+      volumes:
+        - ./rabbitmq/data/:/var/lib/rabbitmq/mnesia
+        - ./rabbitmq/logs/:/var/log/rabbitmq/
+      ports:
+            - 5673:5672    #amqp
+            - 15673:15672  #http
+            
+   library_rest_api:
+      build: .
+      ports:
+         - 8080:8080
+      depends_on:
+        - database
+        - rabbitmq
+        
+   prometheus:
+        image: 'prom/prometheus:latest'
+        volumes:
+          - ./prometheus:/etc/prometheus/
+        container_name: prometheus_library
+        hostname: prometheus
+        command:
+          - --config.file=/etc/prometheus/prometheus.yml
+        ports:
+          - 9091:9090
+        restart: unless-stopped
+        environment:
+          TZ: "Europe/Moscow"
+        networks:
+          - default
+        
+   grafana:
+        image: 'grafana/grafana'
+        user: root
+        depends_on:
+          - prometheus
+        ports:
+          - 3001:3000
+        volumes:
+          - ./grafana:/var/lib/grafana
+          - ./grafana/provisioning/:/etc/grafana/provisioning/
+        container_name: grafana_library
+        hostname: grafana
+        restart: unless-stopped
+        environment:
+          TZ: "Europe/Moscow"
+        networks:
+          - default

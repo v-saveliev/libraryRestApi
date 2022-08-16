@@ -30,7 +30,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/configuration/security",
             "/swagger-ui.html",
             "/webjars/**",
-            "/swagger-ui/**"
+            "/swagger-ui/**",
+            // -- metrics
+            "/actuator/",
+            "/actuator/health/",
+            "/actuator/prometheus/"
     };
 //    private static final String LOGIN_ENDPOINT = "/api/v1/auth/**";
 

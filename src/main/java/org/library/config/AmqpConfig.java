@@ -17,7 +17,7 @@ public class AmqpConfig {
 
     @Bean
     public CachingConnectionFactory connectionFactory() {
-        return new CachingConnectionFactory("localhost");
+        return new CachingConnectionFactory("rabbitmq");
     }
 
     @Bean

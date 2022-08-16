@@ -1,7 +1,11 @@
 package org.library.controllers;
 
+
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.library.dto.BookDto;
 import org.library.dto.BookMapperDto;
+import org.library.metrics.MetricsCounter;
 import org.library.model.Author;
 import org.library.model.Book;
 import org.library.service.AuthorService;
@@ -30,18 +34,23 @@ public class BookRestController {
     private AuthorService authorService;
     private UserService userService;
     private BookMapperDto bookMapper;
+    private MetricsCounter metricsCounter;
 
     @Autowired
     public BookRestController(BookService bookService, AuthorService authorService, UserService userService,
-                              BookMapperDto bookMapper) {
+                              BookMapperDto bookMapper, MetricsCounter metricsCounter) {
         this.bookService = bookService;
         this.authorService = authorService;
         this.userService = userService;
         this.bookMapper = bookMapper;
+        this.metricsCounter = metricsCounter;
     }
 
+
+    @ApiOperation(value = "получить информацию о книге по id")
     @RequestMapping(value = "{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BookDto> getBook(@PathVariable("id") Long bookId) {
+        metricsCounter.incrementGetBooksCounter();
         if(bookId == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -55,6 +64,7 @@ public class BookRestController {
         return new ResponseEntity<>(bookDto, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "записать информацию о книге в базу данных")
     @Transactional
     @RequestMapping(value = "", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BookDto> saveBook(@Valid @RequestBody BookDto bookDto) {
@@ -103,6 +113,7 @@ public class BookRestController {
         return new ResponseEntity<>(bookMapper.convertBookToDto(book), HttpStatus.CREATED);
     }
 
+    @ApiOperation(value = "изменить запись о книге в базе данных")
     @RequestMapping(value = "", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Book> updateBook(@RequestBody Book book, UriComponentsBuilder builder) {
         if (book == null) {
@@ -114,6 +125,7 @@ public class BookRestController {
         return new ResponseEntity<>(book, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "удалить книгу по id")
     @RequestMapping(value = "id", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Book> deleteBook(@PathVariable("id") Long id) {
         Book book = bookService.getById(id);
@@ -127,8 +139,10 @@ public class BookRestController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @ApiOperation(value = "получить список книг с использованием пагинации")
     @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<BookDto>> getAllBooks(@RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<List<BookDto>> getAllBooks(@ApiParam(value = "номер страницы") @RequestParam int page,
+                                                     @ApiParam(value = "количество записей на странице") @RequestParam int size) {
         List<BookDto> booksDto = bookMapper.convertBookListToDto(bookService.getAll(page, size));
 
         if (booksDto.isEmpty()) {
