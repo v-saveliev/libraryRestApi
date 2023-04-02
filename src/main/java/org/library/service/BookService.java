@@ -1,8 +1,10 @@
 package org.library.service;
 
+import org.library.dto.BookDto;
 import org.library.model.Book;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public interface BookService {
 
@@ -12,5 +14,6 @@ public interface BookService {
 
     void delete(Book book);
 
-    List<Book> getAll();
+    List<Book> getAll(int page, int size);
+
 }

@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.library.model.Book;
 import org.library.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,25 +23,28 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book getById(Long id) {
-//        log.info("BookService getById {}", id);
+        log.info("BookService getById {}", id);
         return bookRepository.findById(id).orElse(null);
     }
 
     @Override
     public void save(Book book) {
-//        log.info("BookService save {}", book);
+        log.info("BookService save {}", book);
         bookRepository.save(book);
     }
 
     @Override
     public void delete(Book book) {
-//        log.info("BookService delete {}", book);
+        log.info("BookService delete {}", book);
         bookRepository.delete(book);
     }
 
     @Override
-    public List<Book> getAll() {
-//        log.info("BookService getAll");
-        return bookRepository.findAll();
+    public List<Book> getAll(int page, int size) {
+        log.info("BookService getAll");
+
+        Pageable pageable = PageRequest.of(page, size);
+        return bookRepository.findAll(pageable).getContent();
     }
+
 }

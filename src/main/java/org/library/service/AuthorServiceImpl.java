@@ -2,15 +2,12 @@ package org.library.service;
 
 import org.library.model.Author;
 import org.library.repository.AuthorRepository;
-import org.library.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.support.ExampleMatcherAccessor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AuthorServiceImpl implements AuthorService{
@@ -21,7 +18,7 @@ public class AuthorServiceImpl implements AuthorService{
     @Autowired
     public AuthorServiceImpl(AuthorRepository authorRepository){
         this.authorRepository = authorRepository;
-    };
+    }
 
     @Override
     public Author getById(Long id) {
@@ -29,7 +26,9 @@ public class AuthorServiceImpl implements AuthorService{
     }
 
     @Override
-    public Author getByName(Author author) {
+    public Author getByName(String authorName) {
+        Author author = new Author();
+        author.setName(authorName);
         ExampleMatcher customExampleMatcher = ExampleMatcher.matchingAny()
                 .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
         Example<Author> example = Example.of(author, customExampleMatcher);
@@ -42,14 +41,34 @@ public class AuthorServiceImpl implements AuthorService{
         authorRepository.save(author);
     }
 
+
+    @Override
+    public void saveAll(List<Author> authors) {
+        authorRepository.saveAll(authors);
+    }
+
     @Override
     public void delete(Author author) {
         authorRepository.delete(author);
     }
 
     @Override
-    public List<Author> getAll() {
-        return authorRepository.findAll();
+    public List<Author> getAll(int page, int limit) {
+        if (limit == 0) limit = 10;
+        return authorRepository.findAll(PageRequest.of(page, limit)).toList();
     }
 
+    @Override
+    public List<Author> getAll() {
+        return authorRepository.findAll(PageRequest.of(0, 100)).toList();
+    }
+
+    @Override
+    public List<Author> getAllByNames(int limit, Collection<String> authorsNames)
+    {
+        return authorRepository.getAllByNames(PageRequest.of(0, limit), authorsNames);
+    }
+
+
 }
+

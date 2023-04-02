@@ -1,21 +1,30 @@
 package org.library.controllers;
 
+
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.library.dto.BookDto;
+import org.library.dto.BookMapperDto;
+import org.library.metrics.MetricsCounter;
 import org.library.model.Author;
 import org.library.model.Book;
-import org.library.model.User;
 import org.library.service.AuthorService;
 import org.library.service.BookService;
 import org.library.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.Valid;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/books/")
@@ -24,57 +33,87 @@ public class BookRestController {
     private BookService bookService;
     private AuthorService authorService;
     private UserService userService;
+    private BookMapperDto bookMapper;
+    private MetricsCounter metricsCounter;
 
     @Autowired
-    public BookRestController(BookService bookService, AuthorService authorService, UserService userService) {
+    public BookRestController(BookService bookService, AuthorService authorService, UserService userService,
+                              BookMapperDto bookMapper, MetricsCounter metricsCounter) {
         this.bookService = bookService;
         this.authorService = authorService;
         this.userService = userService;
+        this.bookMapper = bookMapper;
+        this.metricsCounter = metricsCounter;
     }
 
+
+    @ApiOperation(value = "получить информацию о книге по id")
     @RequestMapping(value = "{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Book> getBook(@PathVariable("id") Long bookId) {
+    public ResponseEntity<BookDto> getBook(@PathVariable("id") Long bookId) {
+        metricsCounter.incrementGetBooksCounter();
         if(bookId == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        Book book = this.bookService.getById(bookId);
+        BookDto bookDto = bookMapper.convertBookToDto(bookService.getById(bookId));
 
-        if(book == null) {
+        if(bookDto == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(book, HttpStatus.OK);
+        return new ResponseEntity<>(bookDto, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "записать информацию о книге в базу данных")
+    @Transactional
     @RequestMapping(value = "", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Book> saveBook(@RequestBody Book book) {
-        if (book == null) {
+    public ResponseEntity<BookDto> saveBook(@Valid @RequestBody BookDto bookDto) {
+        if (bookDto == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        List<Author> authorsList = book.getBookAuthors();
-        Author currentAuthor;
-        Author foundedAuthor;
-        for (int i = authorsList.size() - 1; i >= 0 ; i--) {
-            currentAuthor = authorsList.get(i);
-            foundedAuthor = authorService.getByName(currentAuthor);
+        if (bookDto.getBookAuthors().size() > 20) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 
-            if (foundedAuthor != null) {
-                authorsList.set(i, foundedAuthor);
+
+        Book book = bookMapper.convertBookDtoToEntity(bookDto);
+
+        Map<String, Author> authorsMap = authorService.getAll().stream()
+                .collect(Collectors.toMap(Author::getName, Function.identity(), (a1, a2) -> a1));
+        Set<String> authorsNames = authorsMap.keySet();
+        List<Author> bookAuthors = book.getBookAuthors();
+        List<Author> authorsToSave = new ArrayList<>();
+
+        Author currentAuthor;
+        String currentAuthorName;
+        for (int i = bookAuthors.size() - 1; i >= 0 ; i--) {
+            currentAuthor = bookAuthors.get(i);
+            currentAuthorName = currentAuthor.getName();
+
+            if (authorsNames.contains(currentAuthorName)) {
+                bookAuthors.set(i, authorsMap.get(currentAuthorName));
             } else {
-                authorService.save(currentAuthor);
-                foundedAuthor = authorService.getByName(currentAuthor);
-                authorsList.set(i, foundedAuthor);
+                currentAuthor.addBookToList(book);
+                authorsToSave.add(currentAuthor);
+                bookAuthors.remove(i);
             }
         }
+
+        authorService.saveAll(authorsToSave);
+        int limit = 20;
+        List<Author> savedAuthors = authorService.getAllByNames(limit, authorsToSave.stream()
+                .map(Author::getName)
+                .collect(Collectors.toList()));
+        bookAuthors.addAll(savedAuthors);
 
         book.setUser(userService.getById((long) 1));
 
         this.bookService.save(book);
-        return new ResponseEntity<>(book, HttpStatus.CREATED);
+        return new ResponseEntity<>(bookMapper.convertBookToDto(book), HttpStatus.CREATED);
     }
 
+    @ApiOperation(value = "изменить запись о книге в базе данных")
     @RequestMapping(value = "", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Book> updateBook(@RequestBody Book book, UriComponentsBuilder builder) {
         if (book == null) {
@@ -86,6 +125,7 @@ public class BookRestController {
         return new ResponseEntity<>(book, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "удалить книгу по id")
     @RequestMapping(value = "id", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Book> deleteBook(@PathVariable("id") Long id) {
         Book book = bookService.getById(id);
@@ -99,16 +139,29 @@ public class BookRestController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @ApiOperation(value = "получить список книг с использованием пагинации")
     @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Book>> getAllBooks() {
-        List<Book> books = this.bookService.getAll();
+    public ResponseEntity<List<BookDto>> getAllBooks(@ApiParam(value = "номер страницы") @RequestParam int page,
+                                                     @ApiParam(value = "количество записей на странице") @RequestParam int size) {
+        List<BookDto> booksDto = bookMapper.convertBookListToDto(bookService.getAll(page, size));
 
-        if (books.isEmpty()) {
+        if (booksDto.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(books, HttpStatus.OK);
+        return new ResponseEntity<>(booksDto, HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return errors;
+    }
 
 }
